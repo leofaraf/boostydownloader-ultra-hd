@@ -18,8 +18,8 @@ type BoxedFuture = Pin<Box<dyn Future<Output = Result<(), utils::Error>> + Send>
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     match args.cmd {
-        Commands::Boosty { blog, path, access_token, limit, photo_only, video_only } => {
-            download_boosty(blog, path, access_token, limit, photo_only, video_only).await;
+        Commands::Boosty { blog, path, access_token, limit, skip, photo_only, video_only } => {
+            download_boosty(blog, path, access_token, limit, skip, photo_only, video_only).await;
         },
         Commands::Gelbooru { path, tags, page, all, proxy } => {
             download_gelbooru(tags, page, path, all, proxy).await;
@@ -52,14 +52,16 @@ async fn download_gelbooru(tags: String, page: i64, path: String, all: bool, pro
     }
 }
 
-async fn download_boosty(blog: String, path: String, access_token: Option<String>, limit: i64, photo_only: bool, video_only: bool) {
+async fn download_boosty(blog: String, path: String, access_token: Option<String>, limit: i64, skip: i64, photo_only: bool, video_only: bool) {
     let auth = access_token.map(Auth::new);
     println!("Downloading content from {} to {}", blog.purple(), path.green());
     let response = imgdl_rs::boosty::request::Client::fetch_posts(
-        blog.clone(), limit, auth.clone()).await.unwrap();
-    println!("Total count: {}, limit: {}", response.len(), limit);
+        blog.clone(), limit + skip, auth.clone()).await.unwrap();
+    println!("Total count: {}, limit: {}", response.len() - skip as usize, limit);
     
-    std::fs::create_dir_all(path.clone()).unwrap();    
+    std::fs::create_dir_all(path.clone()).unwrap();
+
+    let mut skipped = 0;
         
     let image_futures: Vec<_> = response.iter().flat_map(|post| {
         // Process data for paid or free posts
@@ -73,8 +75,13 @@ async fn download_boosty(blog: String, path: String, access_token: Option<String
                     } else if content.content_type == "ok_video" && !photo_only {
                         if let Some(player_urls) = &content.player_urls {
                             if let Some(player) = player_urls.iter().find(|player| ["ultra_hd", "full_hd"].contains(&player.content_type.as_str())) {
-                                println!("Content type: {}", player.content_type);
-                                futures.push(Box::pin(utils::download_video(player.url.clone(), path.clone())));
+                                if skipped == skip {
+                                    println!("Content type: {}", player.content_type);
+                                    futures.push(Box::pin(utils::download_video(player.url.clone(), path.clone())));
+                                } else {
+                                    println!("Skipping {}", player.url);
+                                    skipped += 1;   
+                                }
                             }
                         }
                     }

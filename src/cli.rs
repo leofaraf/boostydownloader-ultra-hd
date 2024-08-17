@@ -31,6 +31,11 @@ pub enum Commands {
         /// Set limit of maximum images to download
         limit: i64,
 
+        #[arg(short, long)]
+        #[clap(default_value_t = 300)]
+        /// Set count of first posts that will be skipped 
+        skip: i64,
+
         #[arg(long)]
         #[clap(conflicts_with = "video_only", long = "photo-only")]
         /// Download only photos
