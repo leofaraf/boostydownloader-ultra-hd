@@ -17,8 +17,9 @@ Usage
     $ boostydownload boosty --blog USERNAME --access-token ACCESS_TOKEN
   If requested blog have more than 300 posts:
     $ boostydownload boosty --blog USERNAME --limit POSTS_COUNT
-  
-  If requested download single post:
+  If required to skip certain count of posts:
+    $ boostydownload boosty --blog USERNAME --skip SKIP_COUNT
+  If required to download single post:
     $ boostydownload boosty --blog USERNAME --post POST_ID --access-token ACCESS_TOKEN
  Gelbooru:
   $ boostydownload gelbooru --url <SITE_ROOT_URL> --tags <TAGS> --proxy [PROXY]
