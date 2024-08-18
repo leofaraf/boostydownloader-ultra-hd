@@ -17,9 +17,14 @@ Usage
     $ boostydownload boosty --blog USERNAME --access-token ACCESS_TOKEN
   If requested blog have more than 300 posts:
     $ boostydownload boosty --blog USERNAME --limit POSTS_COUNT
+  
+  If requested download single post:
+    $ boostydownload boosty --blog USERNAME --post POST_ID --access-token ACCESS_TOKEN
  Gelbooru:
   $ boostydownload gelbooru --url <SITE_ROOT_URL> --tags <TAGS> --proxy [PROXY]
 By default content is downloaded to `$PWD/img`. You can change path by `--path` argument.
+Obtaining `POST_ID` and `USERNAME`. Go to a post in browser, copy values from URL by this pattern:
+https://boosty.to/{USERNAME}/posts/{POST_ID}
 
 Obtaining access token
 ======================

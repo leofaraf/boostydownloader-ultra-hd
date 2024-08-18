@@ -17,6 +17,10 @@ pub enum Commands {
         /// Boosty blog
         blog: String,
 
+        /// Boosty post
+        #[arg(long)]
+        post: Option<String>,
+
         #[arg(short, long)]
         #[clap(default_value_t = String::from("img"))]
         /// Path where images will be saved
