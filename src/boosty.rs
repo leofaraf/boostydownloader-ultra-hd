@@ -1,10 +1,24 @@
 use std::{future::Future, pin::Pin};
 
-use futures::future::join_all;
-use imgdl_rs::boosty::auth::Auth;
+use futures::{future::join_all, io::Window};
+use imgdl_rs::boosty::{auth::Auth, types::PlayerUrls};
 use colored::Colorize;
 
 use crate::{utils, BoxedFuture};
+
+pub fn get_best_quality(urls: &Vec<PlayerUrls>) -> Option<&PlayerUrls> {
+    let mut opt = None;
+    
+    for url in urls {
+        match &*url.content_type {
+            "ultra_hd" => return Some(url),
+            "full_hd" => opt = Some(url),
+            _ => {}
+        }
+    }
+
+    opt
+}
 
 pub async fn download_boosty_blog(blog: String, path: String, access_token: Option<String>, limit: i64, skip: i64, photo_only: bool, video_only: bool) {
     let auth = access_token.map(Auth::new);
@@ -28,7 +42,7 @@ pub async fn download_boosty_blog(blog: String, path: String, access_token: Opti
                         futures.push(Box::pin(utils::download_img_boosty(url.clone(), path.clone())));
                     } else if content.content_type == "ok_video" && !photo_only {
                         if let Some(player_urls) = &content.player_urls {
-                            if let Some(player) = player_urls.iter().find(|player| ["ultra_hd", "full_hd"].contains(&player.content_type.as_str())) {
+                            if let Some(player) = get_best_quality(player_urls) {
                                 if skipped == skip {
                                     println!("Content type: {}", player.content_type);
                                     futures.push(Box::pin(utils::download_video(player.url.clone(), path.clone())));
@@ -84,7 +98,7 @@ pub async fn download_boosty_post(blog: String, post: String, path: String, acce
                         futures.push(Box::pin(utils::download_img_boosty(url.clone(), path.clone())));
                     } else if content.content_type == "ok_video" && !photo_only {
                         if let Some(player_urls) = &content.player_urls {
-                            if let Some(player) = player_urls.iter().find(|player| ["ultra_hd", "full_hd"].contains(&player.content_type.as_str())) {
+                            if let Some(player) = get_best_quality(player_urls) {
                                 futures.push(Box::pin(utils::download_video(player.url.clone(), path.clone())));
                             }
                         }
