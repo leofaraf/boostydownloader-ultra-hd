@@ -12,8 +12,14 @@ pub fn get_best_quality(urls: &Vec<PlayerUrls>) -> Option<&PlayerUrls> {
     for url in urls {
         match &*url.content_type {
             "ultra_hd" => return Some(url),
-            "full_hd" => opt = Some(url),
-            _ => {}
+            "full_hd" => {
+                opt = Some(url);
+                break;
+            },
+            another => {
+                #[cfg(test)]
+                println!("Another content type: {}", another);
+            }
         }
     }
 
